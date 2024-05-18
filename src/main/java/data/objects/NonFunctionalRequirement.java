@@ -9,9 +9,10 @@ public class NonFunctionalRequirement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false, length = 500)
     private String requirement;
     @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
     public NonFunctionalRequirement() {}
     public NonFunctionalRequirement(String requirement, Project project) {

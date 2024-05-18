@@ -7,11 +7,14 @@ import javax.persistence.*;
 @Setter
 public class Risk {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
+    @Column(nullable = false, length = 1000)
     public String description;
+    @Column(nullable = false)
     public String status;
     @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
     public Risk(String description, String status, Project project) {
         this.description = description;

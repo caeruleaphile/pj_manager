@@ -46,7 +46,7 @@ public class DashboardController {
     @Autowired
     EffortRepository effortRepository;
 
-    @GetMapping("/")
+    @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession httpSession) {
 
         List<Project> projects = projectRepository.findAll();

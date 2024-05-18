@@ -9,9 +9,10 @@ public class FunctionalRequirement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
+    @Column(nullable = false, length = 500)
     public String requirement;
     @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
     public FunctionalRequirement() {}

@@ -10,10 +10,12 @@ public class TeamMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
+    @Column(nullable = false, length = 100)
     public String name;
+    @Column(nullable = false, length = 50)
     public String role;
     @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
     public TeamMember(String name, String role, Project project) {
         this.name = name;
