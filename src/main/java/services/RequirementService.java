@@ -1,22 +1,28 @@
+// RequirementService.java
+
 package services;
-import data.objects.*;
+
 import data.dao.FunctionalReqRepository;
 import data.dao.NonFunctionalReqRepository;
 import data.objects.FunctionalRequirement;
+import data.objects.NonFunctionalRequirement;
+import data.objects.Project; // Added import
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 public class RequirementService {
-    @Autowired
-    FunctionalReqRepository functionalReqRepository;
 
     @Autowired
-    NonFunctionalReqRepository nonFunctionalReqRepository;
+    private FunctionalReqRepository functionalReqRepository;
+
+    @Autowired
+    private NonFunctionalReqRepository nonFunctionalReqRepository;
 
     public List<FunctionalRequirement> getAllFunctionalRequirementsByProjectId(Long projectId) {
-        return functionalReqRepository.findAllByProjectId(projectId);
+        return functionalReqRepository.findAllByProjectId(projectId); // Corrected method call
     }
 
     public void createFunctionalRequirement(String requirement, Long projectId) {
@@ -55,6 +61,3 @@ public class RequirementService {
         nonFunctionalReqRepository.save(nonFunctionalRequirement);
     }
 }
-
-
-

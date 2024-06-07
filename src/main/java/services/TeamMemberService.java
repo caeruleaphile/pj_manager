@@ -1,6 +1,7 @@
 package services;
 
 import data.dao.TeamMemberRepository;
+import data.objects.Project;
 import data.objects.TeamMember;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,12 +14,12 @@ public class TeamMemberService {
     @Autowired
     private TeamMemberRepository teamMemberRepository;
 
-    public List<TeamMember> getAllTeamMembersByProjectId(Long projectId) {
-        return teamMemberRepository.findAllByProjectId(projectId);
+    public List<TeamMember> getAllTeamMembersByProject(Project project) {
+        return teamMemberRepository.findAllByProject(project);
     }
 
-    public void createTeamMember(String name, String role, Long projectId) {
-        TeamMember teamMember = new TeamMember(name, role, projectId);
+    public void createTeamMember(String name, String role, Long project) {
+        TeamMember teamMember = new TeamMember(name, role, project);
         teamMemberRepository.save(teamMember);
     }
 

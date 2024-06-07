@@ -1,21 +1,30 @@
 package data.objects;
+
 import lombok.*;
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class FunctionalRequirement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
+
     @Column(nullable = false, length = 500)
-    public String requirement;
-    @ManyToOne
+    @NotNull
+    @Size(max = 500)
+    private String requirement;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false)
+    @NotNull
     private Project project;
 
-    public FunctionalRequirement() {}
     public FunctionalRequirement(String requirement, Project project) {
         this.requirement = requirement;
         this.project = project;
@@ -26,5 +35,4 @@ public class FunctionalRequirement {
         this.project = new Project();
         this.project.setId(projectId);
     }
-
 }

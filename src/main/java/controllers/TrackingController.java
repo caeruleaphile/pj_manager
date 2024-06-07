@@ -2,6 +2,7 @@ package controllers;
 
 import data.dao.EffortRepository;
 import data.objects.Effort;
+import data.objects.Project; // Import Project class
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,10 +17,10 @@ import java.util.Date;
 public class TrackingController {
 
     @Autowired
-    EffortService effortService;
+    private EffortService effortService;
 
     @Autowired
-    EffortRepository effortRepository;
+    private EffortRepository effortRepository;
 
     @PostMapping("add-effort")
     public String addEffort(@RequestParam Long projectId,
@@ -33,7 +34,9 @@ public class TrackingController {
         Date parsedDate = new SimpleDateFormat("MM/dd/yyyy").parse(date);
 
         Effort effort = new Effort();
-        effort.setProjectId(projectId);
+        Project project = new Project();
+        project.setId(projectId); // Set the project ID
+        effort.setProject(project); // Set the entire project object
         effort.setDate(parsedDate);
         effort.setRequirementAnalysisHours(requirementsAnalysis);
         effort.setDesigningHours(designing);
@@ -48,14 +51,14 @@ public class TrackingController {
 
     @PostMapping("update-effort")
     public String updateEffort(@RequestParam Long projectId,
-                               @RequestParam Long Id,
+                               @RequestParam Long id,
                                @RequestParam int requirementsAnalysis,
                                @RequestParam int designing,
                                @RequestParam int coding,
                                @RequestParam int testing,
                                @RequestParam int projectManagement) {
 
-        Effort effort = effortService.getEffortById(Id);
+        Effort effort = effortService.getEffortById(id);
 
         effort.setRequirementAnalysisHours(requirementsAnalysis);
         effort.setDesigningHours(designing);
@@ -70,9 +73,9 @@ public class TrackingController {
 
     @PostMapping("/delete-effort")
     public String deleteEffort(@RequestParam Long projectId,
-                               @RequestParam Long Id) {
+                               @RequestParam Long id) {
 
-        effortService.deleteEffortById(Id);
+        effortService.deleteEffortById(id);
 
         return "redirect:/view-project?id=" + projectId;
     }

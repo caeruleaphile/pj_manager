@@ -1,189 +1,128 @@
 package controllers;
 
-import com.google.gson.Gson;
 import data.dao.*;
 import data.objects.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import services.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.*;
 
 @Controller
 public class DashboardController {
 
     @Autowired
-    ProjectService projectService;
+    private ProjectRepository projectRepository;
 
     @Autowired
-    ProjectRepository projectRepository;
+    private RiskRepository riskRepository;
 
     @Autowired
-    RiskService riskService;
+    private TeamMemberRepository teamMemberRepository;
 
     @Autowired
-    RiskRepository riskRepository;
+    private FunctionalReqRepository functionalReqRepository;
 
     @Autowired
-    TeamMemberService teamMemberService;
+    private NonFunctionalReqRepository nonFunctionalReqRepository;
 
     @Autowired
-    TeamMemberRepository teamMemberRepository;
-
-    @Autowired
-    FunctionalReqRepository functionalReqRepository;
-
-    @Autowired
-    RequirementService requirementService;
-
-    @Autowired
-    EffortService effortService;
-
-    @Autowired
-    EffortRepository effortRepository;
+    private EffortRepository effortRepository;
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpSession httpSession) {
-
+    public String dashboard(Model model, HttpSession session) {
         List<Project> projects = projectRepository.findAll();
-
-        System.out.println(projects.size());
         model.addAttribute("projects", projects);
-
-        if(projects.isEmpty())
-            model.addAttribute("hasNoProjects", true);
-        else
-            model.addAttribute("hasNoProjects", false);
-
-
+        model.addAttribute("hasNoProjects", projects.isEmpty());
         return "dashboard";
     }
 
     @PostMapping("/create-project")
     public String createProject(HttpServletRequest request) {
-
         String name = request.getParameter("name");
         String description = request.getParameter("description");
         String manager = request.getParameter("manager");
 
+        Project project = new Project(name, description, manager);
+        projectRepository.save(project);
 
-
-        Project project = projectService.createProject(name, description, manager);
-
-        Long id = project.getId();
-
-        return "redirect:/view-project?id=" + id;
+        return "redirect:/dashboard";
     }
 
     @GetMapping("/view-project")
-    public String viewProject(HttpServletRequest request, Model model, @RequestParam Long id) {
+    public String viewProject(Model model, @RequestParam Long id) {
+        Optional<Project> projectOptional = projectRepository.findById(id);
+        if (projectOptional.isPresent()) {
+            Project project = projectOptional.get();
+            model.addAttribute("project", project);
 
-        List<Project> projects = projectRepository.findAll();
+            List<Risk> risks = riskRepository.findAllByProject(project);
+            model.addAttribute("risks", risks);
 
-        model.addAttribute("projects", projects);
+            List<TeamMember> teamMembers = teamMemberRepository.findAllByProject(project);
+            model.addAttribute("team", teamMembers);
 
-        Project project = projectService.getProjectById(id);
+            List<FunctionalRequirement> functionalRequirements = functionalReqRepository.findAllByProject(project);
+            model.addAttribute("functionalRequirements", functionalRequirements);
 
-        model.addAttribute("project", project);
+            List<NonFunctionalRequirement> nonFunctionalRequirements = nonFunctionalReqRepository.findAllByProject(project);
+            model.addAttribute("nonFunctionalRequirements", nonFunctionalRequirements);
 
-        List<Risk> risks = riskService.getAllRisksByProjectId(id);
+            List<Effort> effortList = effortRepository.findAllByProject(project);
+            model.addAttribute("effortList", effortList);
 
-        model.addAttribute("risks", risks);
+            // Calculate total hours and distribution
+            int totalHours = 0;
+            int requirementAnalysisHours = 0;
+            int codingHours = 0;
+            int testingHours = 0;
+            int designingHours = 0;
+            int projectManagementHours = 0;
 
-        List<TeamMember> teamMembers =  teamMemberService.getAllTeamMembersByProjectId(id);
+            for (Effort effort : effortList) {
+                codingHours += effort.getCodingHours();
+                testingHours += effort.getTestingHours();
+                designingHours += effort.getDesigningHours();
+                projectManagementHours += effort.getProjectManagementHours();
+                requirementAnalysisHours += effort.getRequirementAnalysisHours();
+            }
 
-        model.addAttribute("team", teamMembers);
+            totalHours = codingHours + testingHours + designingHours + projectManagementHours + requirementAnalysisHours;
 
-        List<FunctionalRequirement> functionalRequirements = requirementService.getAllFunctionalRequirementsByProjectId(id);
+            model.addAttribute("codingTotal", codingHours);
+            model.addAttribute("testingTotal", testingHours);
+            model.addAttribute("designingTotal", designingHours);
+            model.addAttribute("projectMgtTotal", projectManagementHours);
+            model.addAttribute("requirementAnalysisTotal", requirementAnalysisHours);
+            model.addAttribute("totalHours", totalHours);
 
-        model.addAttribute("functionalRequirements", functionalRequirements);
+            // Calculate distribution percentages
+            double codingDistribution = (double) codingHours / totalHours * 100;
+            double testingDistribution = (double) testingHours / totalHours * 100;
+            double designingDistribution = (double) designingHours / totalHours * 100;
+            double projectMgtDistribution = (double) projectManagementHours / totalHours * 100;
+            double requirementAnalysisDistribution = (double) requirementAnalysisHours / totalHours * 100;
 
-        List<NonFunctionalRequirement> nonFunctionalRequirements = requirementService.getAllNonFunctionalRequirementsByProjectId(id);
+            // Add distribution percentages to the model
+            model.addAttribute("codingDistribution", codingDistribution);
+            model.addAttribute("testingDistribution", testingDistribution);
+            model.addAttribute("designingDistribution", designingDistribution);
+            model.addAttribute("projectMgtDistribution", projectMgtDistribution);
+            model.addAttribute("requirementAnalysisDistribution", requirementAnalysisDistribution);
 
-        model.addAttribute("nonFunctionalRequirements", nonFunctionalRequirements);
-
-        HttpSession session = request.getSession();
-
-        List<Effort> effortList = effortRepository.findAllByProjectId(id);
-
-        int requirementAnalysisHours = 0;
-        int codingHours = 0;
-        int testingHours = 0;
-        int designingHours = 0;
-        int projectManagementHours = 0;
-
-        for(Effort effort : effortList) {
-            codingHours = codingHours + effort.getCodingHours();
-            testingHours = testingHours + effort.getTestingHours();
-            designingHours = designingHours + effort.getDesigningHours();
-            projectManagementHours = projectManagementHours + effort.getProjectManagementHours();
-            requirementAnalysisHours = requirementAnalysisHours + effort.getRequirementAnalysisHours();
+            return "view-project";
+        } else {
+            return "error"; // Or handle appropriately
         }
-
-        model.addAttribute("codingTotal", codingHours);
-        model.addAttribute("testingTotal", testingHours);
-        model.addAttribute("designingTotal", designingHours);
-        model.addAttribute("projectMgtTotal", projectManagementHours);
-        model.addAttribute("requirementAnalysisTotal", requirementAnalysisHours);
-
-        int totalHours = codingHours + testingHours + designingHours + projectManagementHours + requirementAnalysisHours;
-
-        model.addAttribute("totalHours", totalHours);
-
-        Double codingDistribution = (double) codingHours / totalHours;
-        Double testingDistribution = (double) testingHours / totalHours;
-        Double designingDistribution = (double) designingHours / totalHours;
-        Double projectMgtDistribution = (double) projectManagementHours / totalHours;
-        Double requirementAnalysisDistribution = (double) requirementAnalysisHours / totalHours;
-
-        Gson gsonObj = new Gson();
-        Map<Object,Object> map = null;
-        List<Map<Object,Object>> list = new ArrayList<Map<Object,Object>>();
-
-        map = new HashMap<Object,Object>();
-        map.put("label", "Testing");
-        map.put("y", testingDistribution * 100);
-        list.add(map);
-
-        map = new HashMap<Object,Object>();
-        map.put("label", "Coding");
-        map.put("y", codingDistribution * 100);
-        list.add(map);
-
-        map = new HashMap<Object,Object>();
-        map.put("label", "Designing");
-        map.put("y", designingDistribution * 100);
-        list.add(map);
-
-        map = new HashMap<Object,Object>();
-        map.put("label", "Project Management");
-        map.put("y", projectMgtDistribution * 100);
-        list.add(map);
-
-        map = new HashMap<Object,Object>();
-        map.put("label", "Requirement Analysis");
-        map.put("y", requirementAnalysisDistribution * 100);
-        list.add(map);
-
-
-        model.addAttribute("dataPoints", list);
-
-        Collections.reverse(effortList);
-        model.addAttribute("effortList", effortList);
-
-        return "view-project";
     }
 
     @PostMapping("/delete-project")
     public String deleteProject(@ModelAttribute Project project) {
-
         Long id = project.getId();
-        projectService.deleteProject(id);
-
-        return "redirect:/";
+        projectRepository.deleteById(id);
+        return "redirect:/dashboard";
     }
 }

@@ -9,22 +9,23 @@ import java.util.Date;
 
 @Service
 public class EffortService {
-     @Autowired
-     EffortRepository effortRepository;
-     public Effort getEffortByDate(Date date){
-         return effortRepository.findEffortByDate(date);   }
 
-     public Effort getEffortById(Long id) {
+    @Autowired
+    private EffortRepository effortRepository;
+
+    public Effort getEffortByDate(Date date) {
+        return effortRepository.findByDate(date);
+    }
+
+    public Effort getEffortById(Long id) {
         return effortRepository.findEffortById(id);
     }
 
-
-     public Effort updateEffort(Effort effort) {
-        effortRepository.save(effort);
-        return effort;
+    public Effort updateEffort(Effort effort) {
+        return effortRepository.save(effort);
     }
 
-     public void deleteEffortById(Long id) {
+    public void deleteEffortById(Long id) {
         effortRepository.deleteById(id);
     }
 }

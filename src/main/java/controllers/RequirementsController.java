@@ -1,21 +1,19 @@
 package controllers;
 
-
 import data.dao.FunctionalReqRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import services.*;
-
+import services.RequirementService;
 
 @Controller
 public class RequirementsController {
 
     @Autowired
-    FunctionalReqRepository functionalReqRepository;
+    private FunctionalReqRepository functionalReqRepository;
 
     @Autowired
-    RequirementService requirementService;
+    private RequirementService requirementService;
 
     @PostMapping("/create-functional-requirement")
     public String createFunctionalRequirement(
@@ -79,4 +77,3 @@ public class RequirementsController {
         return "redirect:/view-project?id=" + projectId;
     }
 }
-

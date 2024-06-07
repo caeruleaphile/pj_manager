@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ProjectService {
+
     @Autowired
-    ProjectRepository projectRepository;
+    private ProjectRepository projectRepository;
+
     public Project getProjectByName(String name) {
         return projectRepository.findByName(name);
     }
@@ -19,12 +21,11 @@ public class ProjectService {
 
     public Project createProject(Project project) {
         return projectRepository.save(project);
-
     }
+
     public Project createProject(String name, String description, String manager) {
         Project project = new Project(name, description, manager);
         return projectRepository.save(project);
-
     }
 
     public void deleteProject(Long id) {
